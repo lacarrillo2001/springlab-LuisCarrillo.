@@ -11,4 +11,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByEmail(String email);
     //Responder si existe el estudiante con ese email y devolver un boolean
     boolean existsByEmail(String email);
+
+    long countByActive(boolean active);
 }

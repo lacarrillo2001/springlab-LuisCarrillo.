@@ -25,6 +25,9 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
+    // Dependencias de test base en memoria
+    testImplementation 'com.h2database:h2'
+
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Dependencias de test de Spring Boot

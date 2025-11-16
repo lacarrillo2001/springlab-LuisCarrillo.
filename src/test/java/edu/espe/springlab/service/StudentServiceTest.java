@@ -26,24 +26,6 @@ public class StudentServiceTest {
 
 
     @Test
-    void shouldNotAllowDuplicateEmaisl(){
-        Student existing = new Student();
-        existing.setFullName("test User");
-        existing.setEmail("duplicate@exampple.com");
-        existing.setBirthDate(LocalDate.of(2000,1,1));
-        existing.setActive(true);
-
-        repository.save(existing);
-
-        StudentRequestData req = new StudentRequestData();
-        req.setFullName("New User Dup");
-        req.setEmail("duplicate@exampple.com");
-        req.setBirthDate(LocalDate.of(2000,1,1));
-
-        assertThatThrownBy(()-> service.create(req)).isInstanceOf(ConflictException.class);
-    }
-
-    @Test
     void shouldNotAllowDuplicateEmail(){
         Student existing = new Student();
         existing.setFullName("test User");
@@ -60,6 +42,4 @@ public class StudentServiceTest {
 
         assertThatThrownBy(()-> service.create(req)).isInstanceOf(ConflictException.class);
     }
-
-
 }
