@@ -1,0 +1,16 @@
+name: CD - Despliegue en Render
+
+on:
+  workflow_run:
+    workflows: ["CI - Construcción y Pruebas"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Desplegar en Render
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+
