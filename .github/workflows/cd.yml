@@ -26,25 +26,25 @@ jobs:
             --data '{}' \
             --output response.json \
             --write-out "%{http_code}")
-          
+
           deploy_response=$(cat response.json)
-          
-          if [ "$http_status" -ne 201 ]; then
-            echo "Error: La API de Render devolvió un código de estado HTTP $http_status."
+
+          if [ "$http_status" -ne 201 ] && [ "$http_status" -ne 202 ]; then
+            echo "Error: La API de Render devolvió un código de estado HTTP inesperado: $http_status."
             echo "Respuesta de la API: $deploy_response"
             exit 1
           fi
-          
+
           deploy_id=$(echo "$deploy_response" | jq -r '.id')
-          
+
           if [ -z "$deploy_id" ] || [ "$deploy_id" == "null" ]; then
             echo "Error al iniciar el despliegue. Respuesta de la API:"
             echo "$deploy_response"
             exit 1
           fi
-          
+
           echo "Despliegue iniciado con ID: $deploy_id"
-          
+
           # Esperar y verificar el estado del despliegue en un bucle
           while true; do
             sleep 30
@@ -52,9 +52,9 @@ jobs:
               --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/$deploy_id" \
               --header "Accept: application/json" \
               --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" | jq -r '.status')
-            
+
             echo "Estado actual del despliegue: $deploy_status"
-            
+
             if [ "$deploy_status" == "live" ]; then
               echo "Despliegue exitoso."
               break
