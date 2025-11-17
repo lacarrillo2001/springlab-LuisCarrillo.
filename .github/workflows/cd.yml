@@ -25,7 +25,7 @@ jobs:
             --header "Accept: application/json" \
             --header "Content-Type: application/json" \
             --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            --data '{"clearCache": "no"}' \
+            --data '{"clearCache": "do_not_clear"}' \
             --output response.json \
             --write-out "%{http_code}")
 
