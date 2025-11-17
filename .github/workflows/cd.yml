@@ -11,5 +11,54 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Desplegar en Render
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - name: Desplegar en Render y verificar estado
+        id: deploy
+        run: |
+          # Iniciar el despliegue usando la API para obtener el ID del despliegue
+          deploy_response=$(curl --request POST \
+            --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            --header "Accept: application/json" \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --data '{}')
+          
+          deploy_id=$(echo "$deploy_response" | jq -r '.id')
+          
+          if [ -z "$deploy_id" ] || [ "$deploy_id" == "null" ]; then
+            echo "Error al iniciar el despliegue. Respuesta de la API:"
+            echo "$deploy_response"
+            exit 1
+          fi
+          
+          echo "Despliegue iniciado con ID: $deploy_id"
+          
+          # Esperar y verificar el estado del despliegue en un bucle
+          while true; do
+            sleep 30
+            deploy_status=$(curl -s --request GET \
+              --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/$deploy_id" \
+              --header "Accept: application/json" \
+              --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" | jq -r '.status')
+            
+            echo "Estado actual del despliegue: $deploy_status"
+            
+            if [ "$deploy_status" == "live" ]; then
+              echo "Despliegue exitoso."
+              break
+            elif [ "$deploy_status" == "build_failed" ] || [ "$deploy_status" == "canceled" ] || [ "$deploy_status" == "deactivated" ]; then
+              echo "El despliegue ha fallado con estado: $deploy_status"
+              exit 1
+            fi
+          done
+
+      - name: Disparar Rollback si el despliegue falló
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log('El despliegue ha fallado. Iniciando el workflow de rollback...');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'rollback.yml',
+              ref: 'main'
+            })
