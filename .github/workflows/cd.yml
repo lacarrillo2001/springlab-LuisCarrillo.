@@ -10,6 +10,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # Añadir permisos para que este workflow pueda activar otro
+    #n
     permissions:
       actions: write
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
