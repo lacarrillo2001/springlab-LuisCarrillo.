@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
-#Carrillo Luis
+#Carrillo Luis , se ejecuta en cada push o pull request a la rama main
 jobs:
   build:
     runs-on: ubuntu-latest
