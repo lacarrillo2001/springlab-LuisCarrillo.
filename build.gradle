@@ -39,5 +39,7 @@ tasks.named('test') {
 }
 
 processResources {
-    expand(project.properties)
+    filesMatching(['application.yml', 'application-render.yml']) {
+        expand(project.properties)
+    }
 }
