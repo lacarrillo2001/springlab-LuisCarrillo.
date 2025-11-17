@@ -18,32 +18,38 @@ jobs:
       - name: Desplegar en Render y verificar estado
         id: deploy
         run: |
+          echo "Paso 1: Intentando iniciar el despliegue en Render..."
           # Iniciar el despliegue y capturar el código de estado HTTP
           http_status=$(curl --request POST \
             --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
             --header "Accept: application/json" \
+            --header "Content-Type: application/json" \
             --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            --data '{}' \
+            --data '{"clearCache": "no"}' \
             --output response.json \
             --write-out "%{http_code}")
 
+          echo "Paso 2: La API de Render respondió con el código de estado HTTP: $http_status"
+          
           deploy_response=$(cat response.json)
+          echo "Paso 3: Contenido de la respuesta de la API:"
+          echo "$deploy_response"
 
           if [ "$http_status" -ne 201 ] && [ "$http_status" -ne 202 ]; then
-            echo "Error: La API de Render devolvió un código de estado HTTP inesperado: $http_status."
-            echo "Respuesta de la API: $deploy_response"
+            echo "Error: El código de estado no es 201 ni 202. El despliegue no se pudo iniciar."
             exit 1
           fi
 
+          echo "Paso 4: Intentando extraer el ID del despliegue usando jq..."
           deploy_id=$(echo "$deploy_response" | jq -r '.id')
 
           if [ -z "$deploy_id" ] || [ "$deploy_id" == "null" ]; then
-            echo "Error al iniciar el despliegue. Respuesta de la API:"
-            echo "$deploy_response"
+            echo "Error: No se pudo extraer un 'id' válido de la respuesta de la API."
+            echo "Causa probable: ¿Está 'Auto-Deploy' desactivado en Render? Si está activado, puede causar conflictos."
             exit 1
           fi
 
-          echo "Despliegue iniciado con ID: $deploy_id"
+          echo "Paso 5: Despliegue iniciado con éxito. ID del despliegue: $deploy_id"
 
           # Esperar y verificar el estado del despliegue en un bucle
           while true; do
