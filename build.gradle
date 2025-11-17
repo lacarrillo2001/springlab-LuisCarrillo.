@@ -40,6 +40,8 @@ tasks.named('test') {
 
 processResources {
     filesMatching(['application.yml', 'application-render.yml']) {
-        expand(project.properties)
+        filter(ReplaceTokens, tokens: [
+            'project.version': project.version
+        ])
     }
 }
