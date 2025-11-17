@@ -18,12 +18,22 @@ jobs:
       - name: Desplegar en Render y verificar estado
         id: deploy
         run: |
-          # Iniciar el despliegue usando la API para obtener el ID del despliegue
-          deploy_response=$(curl --request POST \
+          # Iniciar el despliegue y capturar el código de estado HTTP
+          http_status=$(curl --request POST \
             --url "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
             --header "Accept: application/json" \
             --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            --data '{}')
+            --data '{}' \
+            --output response.json \
+            --write-out "%{http_code}")
+          
+          deploy_response=$(cat response.json)
+          
+          if [ "$http_status" -ne 201 ]; then
+            echo "Error: La API de Render devolvió un código de estado HTTP $http_status."
+            echo "Respuesta de la API: $deploy_response"
+            exit 1
+          fi
           
           deploy_id=$(echo "$deploy_response" | jq -r '.id')
           
