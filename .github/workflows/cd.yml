@@ -2,7 +2,7 @@ name: CD - Despliegue en Render
 
 on:
   workflow_run:
-    workflows: ["CI - Construcción y Pruebas"]
+    workflows: ["CI - Build and Test"]
     types:
       - completed
 
